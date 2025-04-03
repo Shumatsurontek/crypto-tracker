@@ -1,0 +1,86 @@
+.fear-greed-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 0;
+}
+
+.fear-greed-gauge {
+    width: 200px; /* Adjust size as needed */
+    height: 100px; /* Half the width */
+    border-radius: 100px 100px 0 0; /* Semi-circle */
+    background: conic-gradient(
+        from -90deg,
+        #dc3545 0% 25%,
+        #fd7e14 25% 46%,
+        #ffc107 46% 54%,
+        #20c997 54% 75%,
+        #198754 75% 100%
+    );
+    position: relative;
+    overflow: hidden; /* Hide bottom part of the conic gradient */
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--border-color);
+}
+
+/* White overlay to create the gauge effect */
+.fear-greed-gauge::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 160px; /* Smaller than gauge width */
+    height: 80px; /* Smaller than gauge height */
+    background-color: var(--bg-card); /* Match card background */
+    border-radius: 80px 80px 0 0;
+    z-index: 1;
+    transition: background-color 0.3s ease;
+}
+
+.fear-greed-needle {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    height: 95px; /* Slightly less than gauge height */
+    background-color: var(--text-primary); /* Needle color */
+    transform-origin: bottom center;
+    transition: transform 0.5s ease-out, background-color 0.3s ease;
+    z-index: 2; /* Above the overlay */
+}
+
+.fear-greed-value {
+    position: absolute;
+    bottom: 10px; /* Position inside the overlay */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.5rem;
+    font-weight: bold;
+    z-index: 3; /* Above needle */
+    transition: color 0.3s ease;
+}
+
+.fear-greed-scale {
+    position: absolute;
+    bottom: -15px; /* Position below the gauge */
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    padding: 0 10px; 
+    box-sizing: border-box;   
+}
+
+.fear-greed-classification {
+    margin-top: 1.5rem; /* Increased margin */
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.fear-greed-timestamp {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+} 

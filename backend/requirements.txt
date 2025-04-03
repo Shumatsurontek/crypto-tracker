@@ -1,0 +1,8 @@
+Flask>=2.0
+python-dotenv>=0.19
+requests>=2.25
+Flask-Cors>=3.0 # For handling CORS
+gunicorn>=20.1   # WSGI server for production
+pydantic>=1.9  
+huggingface_hub>=0.15 # Added Hugging Face library
+# Add 'huggingface_hub' later if we use its client library 

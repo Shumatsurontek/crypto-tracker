@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment variables
+.env
+*.env
+backend/.env
+frontend/.env
+
+# Build outputs / Distributions
+dist/
+build/
+*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Docker - Adjust based on your needs
+docker-compose.override.yml
+docker-compose.dev.yml # If you don't want to commit dev overrides
+# Volumes (usually excluded by default, but good to be explicit if needed)
+# data/
+# logs/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor folders
+.vscode/
+.idea/
+*.swp

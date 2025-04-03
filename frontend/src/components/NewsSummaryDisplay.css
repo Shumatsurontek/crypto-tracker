@@ -1,0 +1,87 @@
+.news-summary-container {
+    max-height: 300px; /* Limit height and make scrollable */
+    overflow-y: auto;
+    padding-right: 5px; /* Less padding for scrollbar */
+}
+
+.news-item {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px dashed var(--border-color); /* Separator */
+}
+
+.news-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.news-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem; /* Increased spacing */
+}
+
+.news-title {
+    font-size: 0.95rem; /* Slightly smaller title */
+    font-weight: 500;
+    margin: 0;
+    color: var(--text-primary);
+    flex-grow: 1; /* Allow title to take space */
+}
+
+.news-sentiment {
+    font-size: 1rem; /* Adjust icon size */
+    flex-shrink: 0; /* Prevent icon from shrinking */
+    margin-left: 0.5rem; /* Space between title and icon */
+    cursor: help; /* Indicate tooltip */
+    margin-top: 1px; /* Align better with title */
+}
+
+.news-summary {
+    font-size: 0.85rem; /* Slightly smaller summary */
+    color: var(--text-secondary);
+    margin: 0 0 0.6rem 0; /* Add margin below summary */
+    line-height: 1.5; /* More line spacing */
+}
+
+.news-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.news-source {
+    font-style: italic;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding-right: 10px; /* Space before link */
+}
+
+.news-link {
+    font-size: 0.75rem;
+    color: var(--paypal-blue);
+    text-decoration: none;
+    font-weight: 500;
+    white-space: nowrap; /* Prevent wrapping */
+    display: inline-flex; /* Align icon */
+    align-items: center;
+    gap: 4px; /* Space between text and icon */
+}
+
+.news-link:hover {
+    text-decoration: underline;
+    color: var(--paypal-blue-dark-hover);
+}
+
+.no-data-message {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 2rem 0;
+    font-size: 0.9rem;
+} 

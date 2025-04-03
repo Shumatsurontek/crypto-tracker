@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001" # Map host port 3001 to container port 3001
+    env_file:
+      - ./backend/.env # Pass environment variables from .env file
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile # We need to create this Dockerfile
+    ports:
+      - "5173:5173" # Map host port 5173 (default Vite dev) to container port 5173
+    depends_on:
+      - backend # Wait for backend to be available (basic check)
+    environment:
+       # Ensure frontend knows where the backend is inside the Docker network
+       VITE_BACKEND_URL: http://backend:3001 
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+# Optional volume definition
+# volumes:
+#   backend_logs: 

@@ -1,0 +1,765 @@
+/* Basic Reset & Global Styles */
+:root {
+  /* Light Theme Colors */
+  --bg-body-light: #f7f8f9; /* Slightly off-white like PayPal */
+  --bg-card-light: #ffffff;
+  --text-primary-light: #2c2e2f; /* PayPal primary text */
+  --text-secondary-light: #6c7378; /* PayPal secondary text */
+  --border-light: #e1e7eb; /* Lighter border */
+  --border-strong-light: #cfd7de;
+  --table-header-bg-light: #f7f8f9;
+  --table-row-hover-light: #f1f3f5;
+  --input-bg-light: #ffffff;
+  --input-shadow-light: rgba(0,0,0,0.05);
+  --shadow-light: rgba(9, 30, 66, 0.15); /* Softer shadow */
+
+  /* Dark Theme Colors */
+  --bg-body-dark: #1a1a1a; /* Darker body */
+  --bg-card-dark: #2a2a2a; /* Slightly lighter card */
+  --text-primary-dark: #e8e8e8;
+  --text-secondary-dark: #a8a8a8;
+  --border-dark: #4a4a4a;
+  --border-strong-dark: #5c5c5c;
+  --table-header-bg-dark: #333;
+  --table-row-hover-dark: #3a3a3a;
+  --input-bg-dark: #333;
+  --input-shadow-dark: rgba(255,255,255,0.03);
+  --shadow-dark: rgba(255, 255, 255, 0.08);
+
+  /* Shared Colors */
+  --paypal-blue: #0070ba;
+  --paypal-blue-dark-hover: #005ea6;
+  --error-red: #c82a2a;
+  --error-background: #fdeeee;
+  --error-border: #f5c6cb;
+  --info-blue: #007bff;
+  --info-background: #e7f3ff;
+  --info-border: #b3d7ff;
+  --color-positive-light: #198754; 
+  --color-negative-light: #dc3545; 
+  --color-positive-dark: #20c997;
+  --color-negative-dark: #ff8a8a;
+
+  --text-primary: #f8f9fa;
+  --text-secondary: #adb5bd;
+  --bg-primary: #121212; /* Dark background */
+  --bg-secondary: #1e1e1e; /* Slightly lighter for cards/sections */
+  --border-color: #343a40;
+  --accent-color: #0d6efd; /* Example accent */
+  --button-bg: #343a40;
+  --button-text: #f8f9fa;
+  --button-hover-bg: #495057;
+  --error-color: #dc3545;
+  --warning-color: #ffc107;
+  --summary-bg: #2a2a2a; /* Darker summary background */
+  --skeleton-base: #333;
+  --skeleton-highlight: #444;
+
+  --card-border-radius: 8px;
+  --card-padding: 1rem 1.5rem;
+  --section-gap: 1.5rem; /* Gap between sections */
+}
+
+/* Apply theme variables based on data-theme attribute */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+
+[data-theme='light'] {
+  --bg-body: var(--bg-body-light);
+  --bg-card: var(--bg-card-light);
+  --text-primary: var(--text-primary-light);
+  --text-secondary: var(--text-secondary-light);
+  --border-color: var(--border-light);
+  --border-strong: var(--border-strong-light);
+  --table-header-bg: var(--table-header-bg-light);
+  --table-row-hover: var(--table-row-hover-light);
+  --input-bg: var(--input-bg-light);
+  --input-shadow: var(--input-shadow-light);
+  --card-shadow: var(--shadow-light);
+  --color-positive: var(--color-positive-light);
+  --color-negative: var(--color-negative-light);
+
+  /* Specific adjustments if needed */
+  --error-background: #fdeeee;
+  --error-border: #f5c6cb;
+  --info-background: #e7f3ff;
+  --info-border: #b3d7ff;
+  --summary-bg: var(--summary-bg);
+}
+
+[data-theme='dark'] {
+  --bg-body: var(--bg-body-dark);
+  --bg-card: var(--bg-card-dark);
+  --text-primary: var(--text-primary-dark);
+  --text-secondary: var(--text-secondary-dark);
+  --border-color: var(--border-dark);
+  --border-strong: var(--border-strong-dark);
+  --table-header-bg: var(--table-header-bg-dark);
+  --table-row-hover: var(--table-row-hover-dark);
+  --input-bg: var(--input-bg-dark);
+  --input-shadow: var(--input-shadow-dark);
+  --card-shadow: var(--shadow-dark);
+  --color-positive: var(--color-positive-dark);
+  --color-negative: var(--color-negative-dark);
+
+  /* Adjust alert colors for dark mode */
+  --error-red: #ff8a8a;
+  --error-background: #4d2226;
+  --error-border: #8d4e4e;
+  --info-blue: #80caff;
+  --info-background: #213a4f;
+  --info-border: #456c8e;
+  --summary-bg: var(--summary-bg);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: "PayPal Sans Big", "Helvetica Neue", Arial, sans-serif; 
+    font-weight: 500; /* Medium weight */
+    color: var(--text-primary);
+}
+
+#root {
+  /* Removed previous styles, handled by app-container */
+}
+
+.app-container {
+  max-width: 1200px; /* Limit max width */
+  margin: 0 auto; /* Center the container */
+  padding: 2rem;
+}
+
+/* Theme Toggle Button */
+.theme-toggle-button {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem; /* Adjusted position */
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 1.2rem; /* Slightly smaller */
+    cursor: pointer;
+    padding: 0.4rem 0.5rem;
+    border-radius: 6px; /* Less rounded */
+    transition: all 0.2s ease;
+    line-height: 1; /* Align icon vertically */
+}
+
+.theme-toggle-button:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-card); 
+    border-color: var(--border-strong);
+    box-shadow: 0 1px 3px var(--card-shadow);
+}
+
+/* Card Component Style */
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color); /* Add border */
+  border-radius: 6px; /* Less rounded corners */
+  box-shadow: 0 1px 2px var(--card-shadow); /* Subtle shadow */
+  padding: 1.5rem; /* Consistent padding */
+  margin-bottom: 1.5rem;
+  text-align: left;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  display: flex; /* Enable flexbox for content alignment */
+  flex-direction: column; /* Stack content vertically */
+}
+
+.card h2, .card h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.1rem; /* Slightly smaller titles */
+    font-weight: 500;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.8rem;
+}
+
+/* App Specific Styles */
+.app-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: var(--text-primary);
+}
+.app-header h1 {
+    margin-bottom: 0.5rem;
+    font-size: 2.2rem;
+    font-weight: 600;
+}
+
+/* Dashboard Grid Layout */
+.dashboard-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Responsive columns */
+    gap: var(--section-gap);
+    margin-top: var(--section-gap);
+}
+
+/* Adjust grid for smaller screens if needed */
+@media (max-width: 992px) {
+    .dashboard-sections {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive again */
+    }
+}
+
+.dashboard-column {
+    /* Can hold specific column styles if needed */
+}
+
+/* Portfolio Form Styles */
+.portfolio-form {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem; 
+}
+
+/* Container for fetch/refresh buttons */
+.portfolio-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* Space between fetch and refresh */
+}
+
+.portfolio-form input[type="text"] {
+  flex-grow: 1;
+  padding: 10px 12px; /* Adjusted padding */
+  font-size: 0.95rem;
+  border: 1px solid var(--border-strong); /* Stronger border */
+  border-radius: 4px;
+  box-shadow: inset 0 1px 2px var(--input-shadow);
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.portfolio-form input[type="text"]:focus {
+  border-color: var(--paypal-blue);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 112, 186, 0.2);
+}
+
+.portfolio-form button.fetch-button {
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: var(--paypal-blue);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.portfolio-form button.fetch-button:hover {
+  background-color: var(--paypal-blue-dark-hover);
+}
+
+.portfolio-form button.fetch-button:disabled {
+  background-color: #cccccc;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.portfolio-form button.refresh-button {
+    padding: 8px 10px; /* Smaller padding */
+    font-size: 0.9rem; /* Smaller icon */
+    background-color: var(--bg-card); /* Match card background */
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    line-height: 1; /* Align icon */
+    transition: all 0.2s ease;
+}
+
+.portfolio-form button.refresh-button:hover {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+    box-shadow: 0 1px 2px var(--card-shadow);
+}
+
+.portfolio-form button.refresh-button:disabled {
+    background-color: var(--bg-card); /* Keep background */
+    color: #bbb; /* Dimmed color */
+    cursor: not-allowed;
+    border-color: var(--border-color);
+}
+
+/* Spinning animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Portfolio Results Layout */
+.bottom-row {
+    grid-template-columns: 1fr 1.5fr; /* Give more space to the table */
+}
+
+.portfolio-value-card h3,
+.portfolio-assets-card h3 {
+    font-size: 1rem; /* Smaller subtitle */
+     color: var(--text-secondary);
+     border-bottom: none;
+     margin-bottom: 0.8rem;
+}
+
+.total-value {
+  font-size: 1.6rem; /* Slightly smaller */
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0;
+  border-bottom: none;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.chart-container {
+    margin-top: 1rem; /* Less margin */
+    height: 250px; /* Slightly smaller chart */
+}
+
+/* Assets Table Refinements */
+.assets-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem; /* Less margin */
+}
+
+.assets-table th,
+.assets-table td {
+  border: none; /* Remove cell borders */
+  border-bottom: 1px solid var(--border-color); /* Row separator */
+  padding: 12px 10px; /* Adjusted padding */
+  text-align: right;
+  vertical-align: middle;
+  font-size: 0.9rem;
+  transition: border-color 0.3s ease;
+}
+
+.assets-table th {
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: uppercase; /* Header style */
+    font-size: 0.8rem;
+    border-bottom-width: 2px; /* Stronger header separator */
+    border-color: var(--border-strong);
+}
+
+.assets-table th:first-child,
+.assets-table td:first-child {
+  text-align: left;
+}
+
+.assets-table thead {
+  background-color: transparent; /* Remove header background */
+  border-bottom: none; /* Use th border */
+}
+
+.assets-table tbody tr:hover {
+    background-color: var(--table-row-hover);
+    transition: background-color 0.1s ease;
+}
+
+.assets-table tbody tr:last-child td {
+    border-bottom: none; /* No border on last row */
+}
+
+/* Styling for the "No assets found" message in the table */
+.assets-table td.no-data-message {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 2rem 0;
+    font-size: 0.9rem;
+    border-bottom: none; /* Remove border */
+}
+/* Remove hover effect for no-data row */
+.assets-table tbody tr:has(td.no-data-message):hover {
+    background-color: transparent;
+}
+
+/* Indicator/News Card Refinements */
+.market-data-card,
+.sp500-data-card,
+.news-summary-card {
+    flex-grow: 1; /* Allow cards to fill height if needed */
+}
+
+.news-summary-card .news-summary-container {
+     max-height: 300px; /* Adjust scroll height */
+}
+
+/* General Info Message Style */
+.info-message {
+    background-color: var(--info-background);
+    color: var(--info-blue);
+    border-color: var(--info-border);
+    margin-top: 1rem;
+    padding: 0.8rem 1.2rem;
+    border-radius: 4px;
+    border: 1px solid;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* Loading / Error Messages */
+.loading-message,
+.error-message {
+  margin: 1rem 0; 
+  padding: 0.8rem 1.2rem;
+  border-radius: 4px;
+  border: 1px solid;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.loading-message.compact,
+.error-message.compact {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.85rem;
+    margin: 0.2rem 0; 
+    text-align: center;
+}
+
+.error-message.top-error {
+    grid-column: 1 / -1; /* Span all columns */
+    margin-top: -0.5rem; /* Pull up slightly */
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-size: 0.85rem;
+    background-color: var(--error-background);
+    color: var(--error-red);
+    border-color: var(--error-border);
+}
+
+.timestamp {
+    font-size: 0.8em;
+    color: var(--text-secondary);
+    margin-top: 1rem;
+    text-align: center;
+}
+
+/* Adjustments for SP500 and FearGreed displays */
+.sp500-container, .fear-greed-container {
+     padding: 0.5rem 0; /* Less padding */
+}
+.sp500-price {
+    font-size: 1.6rem;
+}
+.sp500-change {
+    font-size: 1rem;
+}
+.fear-greed-value {
+    font-size: 1.3rem;
+}
+.fear-greed-classification {
+    margin-top: 1rem;
+    font-size: 1rem;
+}
+
+/* Theme & Admin Toggle Buttons */
+.top-right-controls {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.control-button {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem; /* Larger icons */
+    cursor: pointer;
+    padding: 5px;
+    line-height: 1; /* Prevent extra space */
+    transition: color 0.2s ease;
+}
+
+.control-button:hover {
+    color: var(--text-primary);
+}
+
+/* Admin Panel Specific Styles can go here or in AdminPanel.css */
+.admin-panel {
+    /* Styles from AdminPanel.css take precedence if specific enough */
+    margin-bottom: 2rem; /* Space below admin panel */
+}
+
+.news-item {
+  /* ... existing styles ... */
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+}
+
+.llm-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px; /* Spacing between buttons */
+}
+
+.llm-actions button {
+  display: inline-flex; /* Align icon and text */
+  align-items: center;
+  gap: 5px; /* Space between icon and text */
+  padding: 5px 10px;
+  font-size: 0.85em;
+  cursor: pointer;
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.llm-actions button:hover:not(:disabled) {
+  background-color: var(--button-hover-bg);
+}
+
+.llm-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.llm-actions button svg { /* Style the react-icons */
+  width: 1em;
+  height: 1em;
+}
+
+
+.summary {
+  font-style: italic;
+  margin-top: 8px;
+  padding: 8px;
+  background-color: var(--summary-bg); /* Define this variable in your theme */
+  border-left: 3px solid var(--accent-color);
+  font-size: 0.9em;
+  border-radius: 0 4px 4px 0;
+}
+
+.sentiment-label {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+    color: #fff; /* Default text color */
+}
+
+.sentiment-positive { background-color: #28a745; } /* Green */
+.sentiment-negative { background-color: #dc3545; } /* Red */
+.sentiment-neutral { background-color: #6c757d; }  /* Gray */
+/* Add other labels if your model uses them (e.g., LABEL_0, LABEL_1) */
+.sentiment-label_0 { background-color: #dc3545; } /* Example mapping */
+.sentiment-label_1 { background-color: #ffc107; } /* Example mapping */
+.sentiment-label_2 { background-color: #28a745; } /* Example mapping */
+
+
+.llm-error {
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+/* --- General Section/Card Styling --- */
+.dashboard-section {
+    background-color: var(--bg-secondary);
+    border-radius: var(--card-border-radius);
+    padding: var(--card-padding);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    display: flex; /* Allow vertical stacking */
+    flex-direction: column;
+}
+
+.dashboard-section h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+    font-size: 1.3rem;
+    font-weight: 500;
+}
+
+/* --- Input & Portfolio Sections --- */
+.portfolio-input-section .input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 1rem;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+}
+
+.portfolio-input-section input[type="text"] {
+    flex-grow: 1; /* Take available space */
+    padding: 0.5rem 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--bg-primary); /* Match body background */
+    color: var(--text-primary);
+    font-size: 1rem;
+    min-width: 250px; /* Prevent getting too small */
+}
+
+.portfolio-input-section button {
+    padding: 0.5rem 1rem;
+    /* Use general button styles */
+}
+
+.portfolio-display-section .portfolio-summary {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.portfolio-display-section .portfolio-details {
+    display: grid;
+    grid-template-columns: 1fr; /* Stack chart and table by default */
+    gap: var(--section-gap);
+}
+
+/* Side-by-side chart and table on larger screens */
+@media (min-width: 768px) {
+    .portfolio-display-section .portfolio-details {
+        grid-template-columns: 1fr 1fr; /* Equal columns */
+    }
+}
+
+.portfolio-display-section h4 {
+    margin-top: 0;
+    margin-bottom: 0.8rem;
+    font-weight: 500;
+}
+
+/* --- Table Styles --- */
+.portfolio-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.portfolio-table th,
+.portfolio-table td {
+    padding: 0.6rem 0.4rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.95rem;
+}
+
+.portfolio-table th {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.portfolio-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.portfolio-table td:nth-child(2), /* Balance */
+.portfolio-table td:nth-child(3), /* Price */
+.portfolio-table td:nth-child(4) { /* Value */
+    text-align: right;
+    font-family: monospace; /* Use monospace for numbers */
+}
+
+/* --- News Section --- */
+.news-list {
+    margin-top: 1rem; /* Space above first item */
+}
+
+.news-item {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+.news-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.news-item h4 {
+    margin-top: 0;
+    margin-bottom: 0.25rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.news-item h4 a {
+    color: var(--accent-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.news-item h4 a:hover {
+    color: var(--text-primary);
+    text-decoration: underline;
+}
+
+
+.news-source {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.news-item > p { /* Style the description if shown */
+    font-size: 0.95rem;
+    margin-bottom: 0.8rem;
+    color: var(--text-secondary);
+}
+
+
+.llm-actions {
+  margin-top: 0.8rem;
+  display: flex;
+  gap: 8px;
+}
+
+.llm-actions button {
+  /* Inherit general button styles or refine */
+  font-size: 0.8em; /* Smaller buttons */
+  padding: 4px 8px;
+}
+
+/* --- Component Specific Styles (FearGreed, SP500) --- */
+/* Add styles for FearGreedIndexDisplay and SP500Display if needed */
+.fear-greed-display { /* Example class name */
+    text-align: center;
+}
+
+/* --- Utility Classes --- */
+.error-message {
+    color: var(--error-color);
+    background-color: rgba(220, 53, 69, 0.1); /* Light red background */
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    padding: 0.5rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+.warning-message { /* For API limits etc */
+     color: var(--warning-color);
+    background-color: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    padding: 0.5rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+.address-display { /* Styling for the portfolio address */
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    word-break: break-all; /* Prevent long addresses overflowing */
+}

@@ -1,0 +1,78 @@
+.admin-panel {
+    margin-top: 2rem;
+    border-top: 2px solid var(--paypal-blue);
+}
+
+.admin-panel h3 {
+    color: var(--paypal-blue);
+    border-bottom-color: var(--paypal-blue);
+    font-size: 1.2rem;
+}
+
+.admin-sections {
+    display: grid;
+    grid-template-columns: 1fr 2fr; /* Metrics smaller, logs larger */
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+    .admin-sections {
+        grid-template-columns: 1fr; /* Stack on smaller screens */
+    }
+}
+
+.admin-metrics h4,
+.admin-logs h4 {
+    margin-top: 0;
+    margin-bottom: 0.8rem;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.admin-metrics ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.admin-metrics li {
+    margin-bottom: 0.4rem;
+}
+
+.admin-logs .logs-box {
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: var(--bg-body);
+    border: 1px solid var(--border-color);
+    padding: 0.8rem;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    white-space: pre-wrap; /* Wrap long lines */
+    word-break: break-all; 
+}
+
+.admin-logs .log-entry {
+    padding: 2px 0;
+    border-bottom: 1px dotted var(--border-color);
+}
+.admin-logs .log-entry:last-child {
+    border-bottom: none;
+}
+
+/* Optional: Color logs based on level (pino level values: 10=trace, 20=debug, 30=info, 40=warn, 50=error, 60=fatal) */
+.log-level-40 { /* warn */
+    color: #ffa500; /* Orange */
+}
+.log-level-50 { /* error */
+    color: var(--error-red);
+    font-weight: 500;
+}
+.log-level-60 { /* fatal */
+     color: var(--error-red);
+     font-weight: bold;
+     background-color: rgba(220, 53, 69, 0.1);
+} 
