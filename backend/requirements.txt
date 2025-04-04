@@ -6,3 +6,13 @@ gunicorn>=20.1   # WSGI server for production
 pydantic>=1.9  
 huggingface_hub>=0.15 # Added Hugging Face library
 # Add 'huggingface_hub' later if we use its client library 
+
+# --- LangChain Core & Integrations ---
+langchain>=0.1.0 # Use a recent version
+langchain-community>=0.0.10 # Community integrations (tools, loaders)
+langchain-huggingface>=0.0.1 # For HuggingFace LLMs/Embeddings if needed directly
+# Add specific tool dependencies later (e.g., duckduckgo-search, beautifulsoup4) 
+
+# --- LangChain Tool Dependencies ---
+duckduckgo-search>=5.0 # For web search tool
+beautifulsoup4>=4.12 # If creating custom web scraping tools 

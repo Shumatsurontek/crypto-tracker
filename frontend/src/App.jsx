@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { FaSun, FaMoon, FaSyncAlt, FaCog, FaRegCommentDots, FaRegNewspaper } from "react-icons/fa";
 import PortfolioPieChart from './components/PortfolioPieChart';
@@ -8,6 +8,7 @@ import SP500Display from './components/SP500Display';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import AdminPanel from './components/AdminPanel';
+import ChatbotInterface from './components/ChatbotInterface';
 import './App.css'
 
 // Use the backend URL defined in environment variable or default
@@ -27,6 +28,21 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
+import Drawer from '@mui/material/Drawer';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Divider from '@mui/material/Divider';
 
 // MUI Icon Imports
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -35,9 +51,16 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ArticleIcon from '@mui/icons-material/Article';
 import CommentIcon from '@mui/icons-material/Comment';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import NewspaperIcon from '@mui/icons-material/Newspaper';
+import ChatIcon from '@mui/icons-material/Chat';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
 // Accept props from AppWrapper
 function App({ currentThemeMode, toggleThemeCallback }) {
+  const [currentView, setCurrentView] = useState('dashboard');
+  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const [address, setAddress] = useState('');
   const [lastFetchedAddress, setLastFetchedAddress] = useState('');
   const [portfolioData, setPortfolioData] = useState(null);
@@ -49,14 +72,15 @@ function App({ currentThemeMode, toggleThemeCallback }) {
   const [sp500Data, setSp500Data] = useState(null);
   const [initialDataLoading, setInitialDataLoading] = useState(true);
   const [initialDataError, setInitialDataError] = useState(null);
-  const [isAdminPanelVisible, setIsAdminPanelVisible] = useState(false);
-  // === New State for LLM results ===
-  const [llmResults, setLlmResults] = useState({}); // Store summaries/sentiments keyed by article identifier (e.g., url)
-  const [llmLoading, setLlmLoading] = useState({}); // Track loading state per article
-  const [llmError, setLlmError] = useState({});     // Track errors per article
+  const [llmResults, setLlmResults] = useState({});
+  const [llmLoading, setLlmLoading] = useState({});
+  const [llmError, setLlmError] = useState({});
+  const [availableModels, setAvailableModels] = useState({ summarization: [], sentiment: [] });
+  const [selectedSumModel, setSelectedSumModel] = useState('');
+  const [selectedSentModel, setSelectedSentModel] = useState('');
 
   const toggleAdminPanel = () => {
-    setIsAdminPanelVisible(prev => !prev);
+    setIsAdminPanelOpen(prev => !prev);
   };
 
   const handleAddressChange = (event) => {
@@ -133,22 +157,23 @@ function App({ currentThemeMode, toggleThemeCallback }) {
 
   // === Function to call Summarization API ===
   const handleSummarize = async (article) => {
-    const identifier = article.url || article.title; // Use URL or title as a key
-    if (!article.title || !identifier) return; // Need text/identifier
+    const identifier = article.url || article.title;
+    if (!article.title || !identifier) return;
 
-    const textToSummarize = `${article.title}. ${article.description || article.content || ''}`; // Combine title and description/content
-    if (textToSummarize.length < 50) { // Don't summarize very short texts
+    const textToSummarize = `${article.title}. ${article.description || article.content || ''}`;
+    if (textToSummarize.length < 50) {
         setLlmError(prev => ({ ...prev, [identifier]: 'Text too short to summarize.' }));
         return;
     }
 
     setLlmLoading(prev => ({ ...prev, [identifier]: 'summarize' }));
-    setLlmError(prev => ({ ...prev, [identifier]: null })); // Clear previous error
+    setLlmError(prev => ({ ...prev, [identifier]: null }));
 
     try {
-        console.log(`Requesting summary for: ${identifier}`);
+        console.log(`Requesting summary for: ${identifier} using model: ${selectedSumModel}`);
         const response = await axios.post(`${BACKEND_URL}/api/news/summarize`, {
-            text: textToSummarize
+            text: textToSummarize,
+            model_id: selectedSumModel
         });
         setLlmResults(prev => ({
             ...prev,
@@ -158,7 +183,7 @@ function App({ currentThemeMode, toggleThemeCallback }) {
         console.error("Summarization Error:", err);
         const errorMsg = err.response?.data?.error || 'Summarization failed.';
         setLlmError(prev => ({ ...prev, [identifier]: errorMsg }));
-        setLlmResults(prev => ({ ...prev, [identifier]: { ...prev[identifier], summary: null } })); // Clear summary on error
+        setLlmResults(prev => ({ ...prev, [identifier]: { ...prev[identifier], summary: null } }));
     } finally {
         setLlmLoading(prev => ({ ...prev, [identifier]: null }));
     }
@@ -170,7 +195,7 @@ function App({ currentThemeMode, toggleThemeCallback }) {
         if (!article.title || !identifier) return;
 
         const textToAnalyze = `${article.title}. ${article.description || article.content || ''}`;
-         if (textToAnalyze.length < 10) { // Don't analyze very short texts
+         if (textToAnalyze.length < 10) {
             setLlmError(prev => ({ ...prev, [identifier]: 'Text too short for sentiment analysis.' }));
             return;
         }
@@ -179,13 +204,14 @@ function App({ currentThemeMode, toggleThemeCallback }) {
         setLlmError(prev => ({ ...prev, [identifier]: null }));
 
         try {
-            console.log(`Requesting sentiment for: ${identifier}`);
+            console.log(`Requesting sentiment for: ${identifier} using model: ${selectedSentModel}`);
             const response = await axios.post(`${BACKEND_URL}/api/sentiment/analyze`, {
-                text: textToAnalyze
+                text: textToAnalyze,
+                model_id: selectedSentModel
             });
              setLlmResults(prev => ({
                 ...prev,
-                [identifier]: { ...prev[identifier], sentiment: response.data.top_sentiment } // Store only top result for simplicity
+                [identifier]: { ...prev[identifier], sentiment: response.data.top_sentiment }
             }));
         } catch (err) {
             console.error("Sentiment Analysis Error:", err);
@@ -208,8 +234,8 @@ function App({ currentThemeMode, toggleThemeCallback }) {
             console.log("Fetching initial dashboard data...");
             const results = await Promise.allSettled([
                 axios.get(`${BACKEND_URL}/api/market/fear-greed`),
-                axios.get(`${BACKEND_URL}/api/news/crypto`),
                 axios.get(`${BACKEND_URL}/api/market/index`),
+                axios.get(`${BACKEND_URL}/api/news/crypto`),
                 axios.get(`${BACKEND_URL}/api/news/world`)
             ]);
 
@@ -277,6 +303,27 @@ function App({ currentThemeMode, toggleThemeCallback }) {
     fetchInitialData();
   }, []); // Runs only once on mount
 
+  // Fetch available models on mount
+  useEffect(() => {
+    const fetchModels = async () => {
+        try {
+            const response = await axios.get(`${BACKEND_URL}/api/llm/models`);
+            setAvailableModels(response.data);
+            // Set initial selection to the first model (or default if marked)
+            if (response.data?.summarization?.length > 0) {
+                setSelectedSumModel(response.data.summarization[0].id);
+            }
+             if (response.data?.sentiment?.length > 0) {
+                setSelectedSentModel(response.data.sentiment[0].id);
+            }
+        } catch (error) {
+            console.error("Failed to fetch available LLM models:", error);
+            // Handle error display if needed
+        }
+    };
+    fetchModels();
+  }, []); // Run once on mount
+
   const skeletonBaseColor = currentThemeMode === 'light' ? '#ebebeb' : '#333';
   const skeletonHighlightColor = currentThemeMode === 'light' ? '#f5f5f5' : '#444';
 
@@ -285,170 +332,207 @@ function App({ currentThemeMode, toggleThemeCallback }) {
       if (!sentiment || !sentiment.label) return null;
       const sentimentClass = sentiment.label.toLowerCase(); // e.g., 'positive', 'negative'
       const scorePercent = (sentiment.score * 100).toFixed(1);
-      return (
+  return (
           <span className={`sentiment-label sentiment-${sentimentClass}`}>
               {sentiment.label} ({scorePercent}%)
           </span>
       );
   };
 
+  // --- Navigation Items ---
+  const navItems = [
+      { text: 'Dashboard', icon: <DashboardIcon />, view: 'dashboard' },
+      { text: 'Portfolio', icon: <AccountBalanceWalletIcon />, view: 'portfolio' },
+      { text: 'News', icon: <NewspaperIcon />, view: 'news' },
+      { text: 'Agent Chat', icon: <ChatIcon />, view: 'chat' },
+      { text: 'Admin', icon: <AdminPanelSettingsIcon />, view: 'admin' }, // Or trigger modal
+  ];
+
+  // --- Drawer Content ---
+  const drawer = (
+      <Box>
+          <Toolbar variant="dense" /> {/* Spacer to match AppBar height */}
+          <Divider />
+          <List>
+              {navItems.map((item) => (
+                  <ListItem key={item.text} disablePadding>
+                      <ListItemButton
+                          selected={currentView === item.view}
+                          onClick={() => {
+                              if (item.view === 'admin') {
+                                  toggleAdminPanel(); // Open modal instead of changing view
+                              } else {
+                                  setCurrentView(item.view);
+                              }
+                          }}
+                      >
+                          <ListItemIcon>{item.icon}</ListItemIcon>
+                          <ListItemText primary={item.text} />
+                      </ListItemButton>
+                  </ListItem>
+              ))}
+          </List>
+      </Box>
+  );
+
+  // --- Main Content Rendering Logic ---
+  const renderContent = () => {
+      // Loading/Error states handled globally above main content area
+      if (initialDataLoading && !initialDataError) {
+           return <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}><CircularProgress /></Box>;
+      }
+      if (initialDataError && currentView !== 'admin' && currentView !=='chat') { // Don't show global error on admin/chat maybe
+           return <Alert severity="error">{initialDataError}</Alert>;
+      }
+
+      switch (currentView) {
+          case 'dashboard':
+              return (
+                  <Grid container spacing={3}>
+                      {/* Fear & Greed */}
+                      <Grid item xs={12} sm={6} md={4}>
+                          <Paper sx={{ p: 2.5, height: '100%' }}>
+                              <Typography variant="h6" gutterBottom>Sentiment</Typography>
+                              {fearGreedData ? <FearGreedIndexDisplay data={fearGreedData} /> : <Skeleton variant="rectangular" height={150} />}
+                          </Paper>
+                      </Grid>
+                       {/* Market Index */}
+                       <Grid item xs={12} sm={6} md={4}>
+                          <Paper sx={{ p: 2.5, height: '100%' }}>
+                              <Typography variant="h6" gutterBottom>Market Index</Typography>
+                              {sp500Data ? (sp500Data.error ? <Alert severity="warning">{sp500Data.error}</Alert> : <SP500Display data={sp500Data} />) : <Skeleton variant="rectangular" height={150} />}
+                          </Paper>
+                      </Grid>
+                       {/* Placeholder / Quick Actions? */}
+                       <Grid item xs={12} md={4}>
+                           <Paper sx={{ p: 2.5, height: '100%' }}>
+                               <Typography variant="h6" gutterBottom>Quick Actions</Typography>
+                               {/* Add quick links or info here */}
+                               <Typography variant="body2" color="text.secondary">...</Typography>
+                           </Paper>
+                       </Grid>
+                       {/* News Snippets could go here too */}
+                  </Grid>
+              );
+          case 'portfolio':
+              return (
+                   <Stack spacing={3}> {/* Vertical stack for portfolio sections */}
+                       {/* Input Section */}
+                        <Paper component="section">
+                          <CardContent>
+                              <Typography variant="h5" gutterBottom>Track Wallet</Typography>
+                              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems="center">
+                                  <TextField label="Ethereum Address" value={address} onChange={handleAddressChange} onKeyDown={handleKeyDown} sx={{ flexGrow: 1 }} />
+                                  <Button variant="contained" onClick={handleFetchClick} disabled={isLoading || !address}>Fetch</Button>
+                                  <Button variant="outlined" onClick={handleRefreshClick} disabled={isLoading || !lastFetchedAddress} startIcon={<RefreshIcon />}>Refresh</Button>
+                              </Stack>
+                              {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+                           </CardContent>
+                      </Paper>
+                       {/* Display Section (conditionally rendered) */}
+                        {portfolioData && lastFetchedAddress && (
+                           <Paper component="section">
+                               <CardContent>
+                                   {/* Refactored PortfolioDisplay component needed here */}
+                                   <PortfolioPieChart data={portfolioData.assets} />
+                               </CardContent>
+                           </Paper>
+                       )}
+                        {!portfolioData && lastFetchedAddress && !isLoading && (
+                          <Typography>No portfolio data loaded yet.</Typography>
+                        )}
+                   </Stack>
+              );
+           case 'news':
+               return (
+                   <Grid container spacing={3}>
+                       <Grid item xs={12} md={6}>
+                           <Paper sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                               <Typography variant="h6" gutterBottom>Crypto News</Typography>
+                               {/* Refactored NewsSection component needed */}
+                               <NewsSummaryDisplay
+                                   newsData={cryptoNewsData}
+                                   isLoading={initialDataLoading} // Or specific loading state
+                                   handleSummarize={handleSummarize}
+                                   handleAnalyzeSentiment={handleAnalyzeSentiment}
+                                   llmLoading={llmLoading}
+                                   llmResults={llmResults}
+                                   llmError={llmError}
+                               />
+                           </Paper>
+                       </Grid>
+                       <Grid item xs={12} md={6}>
+                           <Paper sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                               <Typography variant="h6" gutterBottom>World News</Typography>
+                                {/* Refactored NewsSection component needed */}
+                                <NewsSummaryDisplay
+                                   newsData={worldNewsData}
+                                   isLoading={initialDataLoading}
+                                   handleSummarize={handleSummarize}
+                                   handleAnalyzeSentiment={handleAnalyzeSentiment}
+                                   llmLoading={llmLoading}
+                                   llmResults={llmResults}
+                                   llmError={llmError}
+                               />
+                           </Paper>
+                       </Grid>
+                   </Grid>
+               );
+          case 'chat':
+              return (
+                  <Paper sx={{ height: 'calc(100vh - 64px - 48px - 16px)', p: 0 }}> {/* Adjust height dynamically */}
+                      <ChatbotInterface />
+                  </Paper>
+              );
+          // case 'admin': // Handled by modal now
+          //     return null;
+          default:
+              return <Typography>Select a section</Typography>;
+      }
+  };
+
+  // --- Component Render ---
   return (
-    <Box sx={{ bgcolor: 'background.default', color: 'text.primary', minHeight: '100vh' }}>
-        <AppBar position="static">
-            <Toolbar>
-                <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 600 }}>
-                    Dashboard
-                </Typography>
-                <IconButton color="inherit" onClick={toggleAdminPanel}><SettingsIcon /></IconButton>
-                <IconButton color="inherit" onClick={toggleThemeCallback}>
-                    {currentThemeMode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
-                </IconButton>
-            </Toolbar>
-        </AppBar>
+      <Box sx={{ display: 'flex', bgcolor: 'background.default', minHeight: '100vh' }}>
+          <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+              <Toolbar variant="dense">
+                  <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 600 }}>
+                      {/* Optionally display current view title */}
+                      {navItems.find(item => item.view === currentView)?.text || 'Dashboard'}
+                  </Typography>
+                   {/* Add other AppBar actions if needed */}
+              </Toolbar>
+          </AppBar>
+          <Drawer
+              variant="permanent" // Persistent sidebar
+              sx={{
+                  width: 240,
+                  flexShrink: 0,
+                  [`& .MuiDrawer-paper`]: { width: 240, boxSizing: 'border-box', borderRight: (theme) => `1px solid ${theme.palette.divider}` },
+              }}
+          >
+              {drawer} {/* Render sidebar content */}
+          </Drawer>
+          <Box
+              component="main"
+              sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3, width: { sm: `calc(100% - 240px)` } }}
+          >
+              <Toolbar variant="dense" /> {/* Spacer for AppBar */}
+               {renderContent()} {/* Render main content based on currentView */}
+          </Box>
 
-        <Container maxWidth="lg" sx={{ mt: 5, mb: 5 }}>
-            {isAdminPanelVisible && <AdminPanel isVisible={isAdminPanelVisible} onClose={toggleAdminPanel} />}
-
-            {initialDataLoading && !initialDataError && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', my: 5 }}>
-                    <CircularProgress />
-                </Box>
-            )}
-            {initialDataError && <Alert severity="error" sx={{ mb: 4 }}>{initialDataError}</Alert>}
-
-            <Card sx={{ mb: 4 }}>
-                <CardContent>
-                    <Typography variant="h5" component="h2" gutterBottom>
-                        Track Your Wallet
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
-                        <TextField
-                            label="Ethereum Address"
-                            variant="outlined"
-                            size="small"
-                            value={address}
-                            onChange={handleAddressChange}
-                            onKeyDown={handleKeyDown}
-                            placeholder="0x..."
-                            sx={{ flexGrow: 1, minWidth: '300px' }}
-                        />
-                        <Button
-                            variant="contained"
-                            onClick={handleFetchClick}
-                            disabled={isLoading || !address}
-                            startIcon={isLoading && lastFetchedAddress !== address ? <CircularProgress size={20} color="inherit" /> : null}
-                        >
-                            Fetch
-                        </Button>
-                         <Button
-                            variant="outlined"
-                            onClick={handleRefreshClick}
-                            disabled={isLoading || !lastFetchedAddress}
-                            startIcon={isLoading && lastFetchedAddress === address ? <CircularProgress size={20} color="inherit" /> : <RefreshIcon />}
-                        >
-                            Refresh
-                         </Button>
-                    </Box>
-                     {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-                </CardContent>
-            </Card>
-
-            {portfolioData && lastFetchedAddress && (
-                 <Card sx={{ mb: 4 }}>
-                    <CardContent>
-                        <Typography variant="h5" component="h2" gutterBottom>
-                           Portfolio: <Typography component="span" sx={{ fontFamily: 'monospace', fontSize: '0.9em', color: 'text.secondary' }}>{lastFetchedAddress}</Typography>
-                        </Typography>
-                         <Typography variant="h6" gutterBottom>
-                             Total Value: {isLoading ? <Skeleton width={100} inline /> : <strong>{formatCurrency(portfolioData.totalValueUsd)}</strong>}
-                         </Typography>
-                         <Grid container spacing={4} sx={{ mt: 1 }}>
-                             <Grid item xs={12} md={5}>
-                                <Typography variant="h6" component="h3" gutterBottom>Allocation</Typography>
-                                 {portfolioData.assets && portfolioData.assets.length > 0 ? (
-                                     <PortfolioPieChart data={portfolioData.assets} />
-                                  ) : <Typography variant="body2" color="text.secondary">No chart data available.</Typography>}
-                             </Grid>
-                             <Grid item xs={12} md={7}>
-                                <Typography variant="h6" component="h3" gutterBottom>Assets</Typography>
-                                {portfolioData.assets && portfolioData.assets.length > 0 ? (
-                                    <table className="portfolio-table">
-                                        <thead><tr><th>Asset</th><th>Balance</th><th>Price (USD)</th><th>Value (USD)</th></tr></thead>
-                                        <tbody>
-                                            {portfolioData.assets.map(asset => (<tr key={asset.symbol}><td>{asset.symbol}</td><td>{formatNumber(asset.balance)}</td><td>{formatCurrency(asset.priceUsd)}</td><td>{formatCurrency(asset.valueUsd)}</td></tr>))}
-                                            {portfolioData.ethBalanceFormatted && (<tr><td>ETH</td><td>{formatNumber(portfolioData.ethBalanceFormatted)}</td><td>{formatCurrency(portfolioData.ethPriceUsd)}</td><td>{formatCurrency(portfolioData.ethValueUsd)}</td></tr>)}
-                                        </tbody>
-                                    </table>
-                                ) : <Typography variant="body2" color="text.secondary">No assets with value found.</Typography>}
-                             </Grid>
-                         </Grid>
-                     </CardContent>
-                 </Card>
-             )}
-
-            {!initialDataLoading && !initialDataError && (
-                <Grid container spacing={4}>
-
-                     <Grid item xs={12} md={6} lg={4}>
-                        <Card sx={{ height: '100%' }}>
-                            <CardContent>
-                                <Typography variant="h6" component="h2" gutterBottom>Market Sentiment</Typography>
-                                {fearGreedData ? <FearGreedIndexDisplay data={fearGreedData} /> : <Skeleton height={120} />}
-                            </CardContent>
-                        </Card>
-                    </Grid>
-
-                     <Grid item xs={12} md={6} lg={4}>
-                         <Card sx={{ height: '100%' }}>
-                            <CardContent>
-                                <Typography variant="h6" component="h2" gutterBottom>Market Index (Dow Jones)</Typography>
-                                {sp500Data ? (
-                                    sp500Data.error ? <Alert severity="warning" variant="outlined">{sp500Data.error}</Alert> : <SP500Display data={sp500Data} />
-                                ) : <Skeleton height={120}/>}
-                            </CardContent>
-                        </Card>
-                    </Grid>
-
-                     <Grid item xs={12} lg={4}>
-                         <Card sx={{ height: '100%' }}>
-                            <CardContent>
-                                <Typography variant="h6" component="h2" gutterBottom>Crypto News</Typography>
-                                {cryptoNewsData ? (
-                                    <Box sx={{ maxHeight: '500px', overflowY: 'auto', pr: 1 }}>
-                                        {cryptoNewsData.map((article, index) => {
-                                            const identifier = article.url || article.title;
-                                            const isLoadingSummary = llmLoading[identifier] === 'summarize';
-                                            const isLoadingSentiment = llmLoading[identifier] === 'sentiment';
-                                            const summary = llmResults[identifier]?.summary;
-                                            const sentiment = llmResults[identifier]?.sentiment;
-                                            const error = llmError[identifier];
-                                            return (
-                                                <Box key={identifier || index} sx={{ mb: 3, pb: 2, borderBottom: 1, borderColor: 'divider' }}>
-                                                    <Typography variant="subtitle1" component="h4" gutterBottom sx={{ fontWeight: 500 }}>
-                                                        <a href={article.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>{article.title}</a>
-                                                    </Typography>
-                                                    <Typography variant="caption" display="block" gutterBottom>{article.source} {article.published_at ? `- ${new Date(article.published_at).toLocaleDateString()}` : ''}</Typography>
-                                                    {error && <Alert severity="error" variant="outlined" size="small" sx={{ my: 1 }}>{error}</Alert>}
-                                                    {summary && <Typography variant="body2" sx={{ fontStyle: 'italic', my: 1, p: 1.5, bgcolor: 'action.hover', borderRadius: 1 }}>{summary}</Typography>}
-                                                    {sentiment && <Box sx={{ my: 1 }}>{renderSentimentLabel(sentiment)}</Box>}
-                                                    <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
-                                                         <Button size="small" variant="text" startIcon={isLoadingSummary ? <CircularProgress size={16} /> : <ArticleIcon />} onClick={() => handleSummarize(article)} disabled={isLoadingSummary || isLoadingSentiment}>Summary</Button>
-                                                         <Button size="small" variant="text" startIcon={isLoadingSentiment ? <CircularProgress size={16} /> : <CommentIcon />} onClick={() => handleAnalyzeSentiment(article)} disabled={isLoadingSummary || isLoadingSentiment}>Sentiment</Button>
-                                                    </Box>
-                                                </Box>
-                                            );
-                                        })}
-                                    </Box>
-                                ) : <Skeleton count={5} height={60} />}
-                            </CardContent>
-                        </Card>
-                    </Grid>
-
-                </Grid>
-            )}
-
-        </Container>
-    </Box>
+          {/* Admin Panel (Modal/Drawer) - keep previous implementation */}
+          {/* Ensure AdminPanel component is refactored to use MUI */}
+           <AdminPanel
+              isVisible={isAdminPanelOpen}
+              onClose={toggleAdminPanel}
+              availableModels={availableModels}
+              selectedSumModel={selectedSumModel}
+              setSelectedSumModel={setSelectedSumModel}
+              selectedSentModel={selectedSentModel}
+              setSelectedSentModel={setSelectedSentModel}
+           />
+      </Box>
   );
 }
 
