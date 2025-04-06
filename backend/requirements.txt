@@ -1,18 +1,26 @@
-Flask>=2.0
-python-dotenv>=0.19
-requests>=2.25
-Flask-Cors>=3.0 # For handling CORS
-gunicorn>=20.1   # WSGI server for production
-pydantic>=1.9  
-huggingface_hub>=0.15 # Added Hugging Face library
-# Add 'huggingface_hub' later if we use its client library 
+# Core dependencies
+flask>=2.3.3
+flask-cors>=4.0.0
+requests>=2.31.0
+python-dotenv>=1.0.0
 
-# --- LangChain Core & Integrations ---
-langchain>=0.1.0 # Use a recent version
-langchain-community>=0.0.10 # Community integrations (tools, loaders)
-langchain-huggingface>=0.0.1 # For HuggingFace LLMs/Embeddings if needed directly
-# Add specific tool dependencies later (e.g., duckduckgo-search, beautifulsoup4) 
+# LangChain dependencies with compatible versions
+langchain>=0.1.0
+langchain-huggingface>=0.1.2
+langchain-core>=0.3.15,<0.4.0
+langchain-community>=0.1.0
+langgraph>=0.0.38
 
-# --- LangChain Tool Dependencies ---
-duckduckgo-search>=5.0 # For web search tool
-beautifulsoup4>=4.12 # If creating custom web scraping tools 
+# Additional dependencies
+pydantic>=2.5.2
+typing-extensions>=4.9.0
+
+# For LLM functionality
+huggingface-hub>=0.23.0
+sentence-transformers>=2.6.0
+tokenizers>=0.19.1
+transformers>=4.39.0
+
+# For Web Searching
+duckduckgo-search>=4.0.0
+beautifulsoup4>=4.12.2 

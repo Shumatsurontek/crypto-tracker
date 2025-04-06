@@ -8,13 +8,18 @@ ENV PYTHONUNBUFFERED 1       # Prevents python from buffering stdout/stderr
 # Set the working directory in the container
 WORKDIR /app
 
-# Install system dependencies if needed (e.g., for psycopg2, uncomment below)
-# RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev && rm -rf /var/lib/apt/lists/*
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
 # Copy only requirements first to leverage Docker cache
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
 COPY . .

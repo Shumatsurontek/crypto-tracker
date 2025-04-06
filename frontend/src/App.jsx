@@ -78,6 +78,7 @@ function App({ currentThemeMode, toggleThemeCallback }) {
   const [availableModels, setAvailableModels] = useState({ summarization: [], sentiment: [] });
   const [selectedSumModel, setSelectedSumModel] = useState('');
   const [selectedSentModel, setSelectedSentModel] = useState('');
+  const [chatResponse, setChatResponse] = useState({ loading: false, error: null, answer: null });
 
   const toggleAdminPanel = () => {
     setIsAdminPanelOpen(prev => !prev);
@@ -205,13 +206,13 @@ function App({ currentThemeMode, toggleThemeCallback }) {
 
         try {
             console.log(`Requesting sentiment for: ${identifier} using model: ${selectedSentModel}`);
-            const response = await axios.post(`${BACKEND_URL}/api/sentiment/analyze`, {
+            const response = await axios.post(`${BACKEND_URL}/api/news/sentiment/analyze`, {
                 text: textToAnalyze,
                 model_id: selectedSentModel
             });
              setLlmResults(prev => ({
                 ...prev,
-                [identifier]: { ...prev[identifier], sentiment: response.data.top_sentiment }
+                [identifier]: { ...prev[identifier], sentiment: response.data.sentiment }
             }));
         } catch (err) {
             console.error("Sentiment Analysis Error:", err);
@@ -222,6 +223,31 @@ function App({ currentThemeMode, toggleThemeCallback }) {
             setLlmLoading(prev => ({ ...prev, [identifier]: null }));
         }
     };
+
+  // === Function to call Chat API ===
+  const handleChatQuery = async (question) => {
+    setChatResponse({ loading: true, error: null, answer: null });
+    try {
+      console.log(`Sending question to chat API: ${question}`);
+      // Update API endpoint from /api/agent/invoke to /api/chat/ask
+      const response = await axios.post(`${BACKEND_URL}/api/chat/ask`, {
+        question: question
+      });
+      console.log("Chat response:", response.data);
+      setChatResponse({
+        loading: false,
+        answer: response.data.answer,
+        executionTime: response.data.execution_time || "N/A"
+      });
+    } catch (err) {
+      console.error("Chat API Error:", err);
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to get response from AI.';
+      setChatResponse({
+        loading: false,
+        error: errorMessage
+      });
+    }
+  };
 
   // Effect to fetch ALL initial dashboard data
   useEffect(() => {
@@ -248,22 +274,13 @@ function App({ currentThemeMode, toggleThemeCallback }) {
                 errors.push('Fear & Greed');
             }
 
-            // Process Crypto News Summary
-            const cryptoNewsResult = results[1];
-            if (cryptoNewsResult.status === 'fulfilled' && cryptoNewsResult.value.data.articles) {
-                 setCryptoNewsData(cryptoNewsResult.value.data.articles);
-            } else {
-                const errorDetail = cryptoNewsResult.reason?.response?.data?.error || cryptoNewsResult.reason?.message || 'Unknown';
-                console.error(`Crypto News Error: ${errorDetail}`);
-                errors.push(`Crypto News`);
-            }
-
-            // Process Market Index Data (formerly S&P 500)
-            const marketIndexResult = results[2];
+            // Process Market Index Data
+            const marketIndexResult = results[1];
             if (marketIndexResult.status === 'fulfilled') {
                 setSp500Data(marketIndexResult.value.data);
             } else {
                  const errorDetail = marketIndexResult.reason?.response?.data?.error || marketIndexResult.reason?.message || 'Unknown';
+                 
                 const statusCode = marketIndexResult.reason?.response?.status;
                 if (statusCode === 403) {
                     console.warn(`Market Index Warning: ${errorDetail}`);
@@ -272,6 +289,16 @@ function App({ currentThemeMode, toggleThemeCallback }) {
                     console.error(`Market Index Error: ${errorDetail}`);
                     errors.push(`Market Index`);
                 }
+            }
+            
+            // Process Crypto News Summary
+            const cryptoNewsResult = results[2];
+            if (cryptoNewsResult.status === 'fulfilled' && cryptoNewsResult.value.data.articles) {
+                 setCryptoNewsData(cryptoNewsResult.value.data.articles);
+            } else {
+                const errorDetail = cryptoNewsResult.reason?.response?.data?.error || cryptoNewsResult.reason?.message || 'Unknown';
+                console.error(`Crypto News Error: ${errorDetail}`);
+                errors.push(`Crypto News`);
             }
 
             // Process World News Summary
@@ -342,9 +369,7 @@ function App({ currentThemeMode, toggleThemeCallback }) {
   // --- Navigation Items ---
   const navItems = [
       { text: 'Dashboard', icon: <DashboardIcon />, view: 'dashboard' },
-      { text: 'Portfolio', icon: <AccountBalanceWalletIcon />, view: 'portfolio' },
-      { text: 'News', icon: <NewspaperIcon />, view: 'news' },
-      { text: 'Agent Chat', icon: <ChatIcon />, view: 'chat' },
+      { text: 'Chat', icon: <ChatIcon />, view: 'chat' },
       { text: 'Admin', icon: <AdminPanelSettingsIcon />, view: 'admin' }, // Or trigger modal
   ];
 
@@ -388,37 +413,49 @@ function App({ currentThemeMode, toggleThemeCallback }) {
       switch (currentView) {
           case 'dashboard':
               return (
-                  <Grid container spacing={3}>
-                      {/* Fear & Greed */}
-                      <Grid item xs={12} sm={6} md={4}>
-                          <Paper sx={{ p: 2.5, height: '100%' }}>
-                              <Typography variant="h6" gutterBottom>Sentiment</Typography>
-                              {fearGreedData ? <FearGreedIndexDisplay data={fearGreedData} /> : <Skeleton variant="rectangular" height={150} />}
-                          </Paper>
+                  <Stack spacing={3}>
+                      {/* Top Section: Market Data */}
+                      <Grid container spacing={3}>
+                          {/* Fear & Greed */}
+                          <Grid item xs={12} sm={6} md={4}>
+                              <Paper sx={{ p: 2.5, height: '100%' }}>
+                                  <Typography variant="h6" gutterBottom>Sentiment</Typography>
+                                  {fearGreedData ? <FearGreedIndexDisplay data={fearGreedData} /> : <Skeleton variant="rectangular" height={150} />}
+                              </Paper>
+                          </Grid>
+                           {/* Market Index */}
+                           <Grid item xs={12} sm={6} md={4}>
+                              <Paper sx={{ p: 2.5, height: '100%' }}>
+                                  <Typography variant="h6" gutterBottom>Market Index</Typography>
+                                  {sp500Data ? (sp500Data.error ? <Alert severity="warning">{sp500Data.error}</Alert> : <SP500Display data={sp500Data} />) : <Skeleton variant="rectangular" height={150} />}
+                              </Paper>
+                          </Grid>
+                           {/* Quick Actions */}
+                           <Grid item xs={12} md={4}>
+                               <Paper sx={{ p: 2.5, height: '100%' }}>
+                                   <Typography variant="h6" gutterBottom>Quick Actions</Typography>
+                                   <Stack spacing={1}>
+                                       <Button 
+                                           variant="outlined" 
+                                           onClick={toggleAdminPanel}
+                                           startIcon={<SettingsIcon />}
+                                       >
+                                           Configure API Settings
+                                       </Button>
+                                       <Button 
+                                           variant="outlined" 
+                                           onClick={() => setCurrentView('chat')}
+                                           startIcon={<ChatIcon />}
+                                       >
+                                           Ask Crypto Agent
+                                       </Button>
+                                   </Stack>
+                               </Paper>
+                           </Grid>
                       </Grid>
-                       {/* Market Index */}
-                       <Grid item xs={12} sm={6} md={4}>
-                          <Paper sx={{ p: 2.5, height: '100%' }}>
-                              <Typography variant="h6" gutterBottom>Market Index</Typography>
-                              {sp500Data ? (sp500Data.error ? <Alert severity="warning">{sp500Data.error}</Alert> : <SP500Display data={sp500Data} />) : <Skeleton variant="rectangular" height={150} />}
-                          </Paper>
-                      </Grid>
-                       {/* Placeholder / Quick Actions? */}
-                       <Grid item xs={12} md={4}>
-                           <Paper sx={{ p: 2.5, height: '100%' }}>
-                               <Typography variant="h6" gutterBottom>Quick Actions</Typography>
-                               {/* Add quick links or info here */}
-                               <Typography variant="body2" color="text.secondary">...</Typography>
-                           </Paper>
-                       </Grid>
-                       {/* News Snippets could go here too */}
-                  </Grid>
-              );
-          case 'portfolio':
-              return (
-                   <Stack spacing={3}> {/* Vertical stack for portfolio sections */}
-                       {/* Input Section */}
-                        <Paper component="section">
+
+                      {/* Middle Section: Portfolio Tracker */}
+                      <Paper component="section">
                           <CardContent>
                               <Typography variant="h5" gutterBottom>Track Wallet</Typography>
                               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems="center">
@@ -429,63 +466,57 @@ function App({ currentThemeMode, toggleThemeCallback }) {
                               {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
                            </CardContent>
                       </Paper>
-                       {/* Display Section (conditionally rendered) */}
-                        {portfolioData && lastFetchedAddress && (
+
+                      {/* Display Portfolio Data if Available */}
+                      {portfolioData && lastFetchedAddress && (
                            <Paper component="section">
                                <CardContent>
-                                   {/* Refactored PortfolioDisplay component needed here */}
                                    <PortfolioPieChart data={portfolioData.assets} />
                                </CardContent>
                            </Paper>
                        )}
-                        {!portfolioData && lastFetchedAddress && !isLoading && (
-                          <Typography>No portfolio data loaded yet.</Typography>
-                        )}
-                   </Stack>
+
+                      {/* News Section: Grid with Crypto & World News */}
+                      <Grid container spacing={3}>
+                          <Grid item xs={12} md={6}>
+                              <Paper sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                                  <Typography variant="h6" gutterBottom>Crypto News</Typography>
+                                  <NewsSummaryDisplay
+                                      newsData={cryptoNewsData}
+                                      sourceName="crypto"
+                                      isLoading={initialDataLoading}
+                                      handleSummarize={handleSummarize}
+                                      handleAnalyzeSentiment={handleAnalyzeSentiment}
+                                      llmLoading={llmLoading}
+                                      llmResults={llmResults}
+                                      llmError={llmError}
+                                  />
+                              </Paper>
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                              <Paper sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                                  <Typography variant="h6" gutterBottom>World News</Typography>
+                                  <NewsSummaryDisplay
+                                      newsData={worldNewsData}
+                                      sourceName="world"
+                                      isLoading={initialDataLoading}
+                                      handleSummarize={handleSummarize}
+                                      handleAnalyzeSentiment={handleAnalyzeSentiment}
+                                      llmLoading={llmLoading}
+                                      llmResults={llmResults}
+                                      llmError={llmError}
+                                  />
+                              </Paper>
+                          </Grid>
+                      </Grid>
+                  </Stack>
               );
-           case 'news':
-               return (
-                   <Grid container spacing={3}>
-                       <Grid item xs={12} md={6}>
-                           <Paper sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                               <Typography variant="h6" gutterBottom>Crypto News</Typography>
-                               {/* Refactored NewsSection component needed */}
-                               <NewsSummaryDisplay
-                                   newsData={cryptoNewsData}
-                                   isLoading={initialDataLoading} // Or specific loading state
-                                   handleSummarize={handleSummarize}
-                                   handleAnalyzeSentiment={handleAnalyzeSentiment}
-                                   llmLoading={llmLoading}
-                                   llmResults={llmResults}
-                                   llmError={llmError}
-                               />
-                           </Paper>
-                       </Grid>
-                       <Grid item xs={12} md={6}>
-                           <Paper sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                               <Typography variant="h6" gutterBottom>World News</Typography>
-                                {/* Refactored NewsSection component needed */}
-                                <NewsSummaryDisplay
-                                   newsData={worldNewsData}
-                                   isLoading={initialDataLoading}
-                                   handleSummarize={handleSummarize}
-                                   handleAnalyzeSentiment={handleAnalyzeSentiment}
-                                   llmLoading={llmLoading}
-                                   llmResults={llmResults}
-                                   llmError={llmError}
-                               />
-                           </Paper>
-                       </Grid>
-                   </Grid>
-               );
           case 'chat':
               return (
                   <Paper sx={{ height: 'calc(100vh - 64px - 48px - 16px)', p: 0 }}> {/* Adjust height dynamically */}
                       <ChatbotInterface />
                   </Paper>
               );
-          // case 'admin': // Handled by modal now
-          //     return null;
           default:
               return <Typography>Select a section</Typography>;
       }

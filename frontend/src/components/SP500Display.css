@@ -18,6 +18,13 @@
     padding: 1rem 0;
 }
 
+.sp500-title {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
 .sp500-price {
     font-size: 1.8rem; /* Large price */
     font-weight: bold;
